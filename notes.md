@@ -1,11 +1,9 @@
 ### TODO
 * read
     * auc roc
-    * vote classifier
-    * how this under sampling works in RandomUnderSampler, what sampling_strategy represents
     * how to use optuna for lightgbm param tuning
 * use optuna for lightgbm param tuning
-* do feature engineering
+* understand features
 * custom metric, maybe it could be better than auc
 
 ### Important questions

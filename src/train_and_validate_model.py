@@ -12,8 +12,13 @@ from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from custom_datasets import SkinLesionDataset, SkinLesionDatasetWithSynthetic
+from src.models.EfficientNetB3 import EfficientNetB3
 from src.models.UpgradedCNN import UpgradedCNN
 from src.components.EarlyStopping import EarlyStopping
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+
 
 def load_and_split_metadata(csv_path):
     df = pd.read_csv(csv_path)
@@ -27,10 +32,10 @@ def load_and_split_metadata(csv_path):
     test_mal, train_val_mal = train_test_split(df_mal, train_size=50)
     test_ben, train_val_ben = train_test_split(df_ben, train_size=1000)
 
-    val_mal, train_mal = train_test_split(train_val_mal, train_size=50)
-    val_ben, train_ben = train_test_split(train_val_ben, train_size=1000)
+    val_mal, train_mal = train_test_split(train_val_mal, train_size=200)
+    val_ben, train_ben = train_test_split(train_val_ben, train_size=200)
 
-    train_ben_down = train_ben.sample(n=15293)
+    train_ben_down = train_ben.sample(n=2614)
 
     train_df = pd.concat([train_mal, train_ben_down]).sample(frac=1).reset_index(drop=True)
     val_df = pd.concat([val_mal, val_ben]).sample(frac=1).reset_index(drop=True)
@@ -50,23 +55,68 @@ def load_synthetic_df(synth_dir, label):
         "target": label
     })
 
-def get_transforms():
+def load_external_df(synth_dir, label):
+    synth_paths = list(Path(synth_dir).glob("*.jpg"))
+    return pd.DataFrame({
+        "isic_id": [p.stem for p in synth_paths],
+        "target": label
+    })
+
+def get_train_transforms(image_size=300):
+    return A.Compose([
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+
+        A.ShiftScaleRotate(
+            shift_limit=0.05,
+            scale_limit=0.1,
+            rotate_limit=20,
+            border_mode=0,
+            p=0.7
+        ),
+
+        A.RandomBrightnessContrast(
+            brightness_limit=0.15,
+            contrast_limit=0.15,
+            p=0.5
+        ),
+
+        A.HueSaturationValue(
+            hue_shift_limit=5,
+            sat_shift_limit=10,
+            val_shift_limit=5,
+            p=0.3
+        ),
+
+        A.Resize(image_size, image_size),
+
+        A.Normalize(
+            mean=(0.485, 0.456, 0.406),
+            std=(0.229, 0.224, 0.225)
+        ),
+
+        ToTensorV2()
+    ])
+
+
+def get_val_test_transforms():
     return transforms.Compose([
         transforms.ToTensor(),
-        transforms.Resize((128, 128)),
+        transforms.Resize((300, 300)),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
     ])
 
-
 def create_datasets(train_df, val_df, test_df, root_dir):
-    t = get_transforms()
-
-    # train_ds = SkinLesionDataset(train_df, root_dir, t)
+    val_transforms = test_transforms = get_val_test_transforms()
+    train_transforms = get_train_transforms(300)
+    # train_ds = SkinLesionDataset(train_df, root_dir, train_transforms)
+    # train_ds = SkinLesionDatasetWithSynthetic(train_df, real_root="data/train-image/image",
+    #                                            synth_root="data/train-image/synthetic", transforms=train_transforms)
     train_ds = SkinLesionDatasetWithSynthetic(train_df, real_root="data/train-image/image",
-                                              synth_root="data/train-image/synthetic", transforms=t)
-    val_ds = SkinLesionDataset(val_df, root_dir, t)
-    test_ds = SkinLesionDataset(test_df, root_dir, t)
+                                              synth_root="data/malign_external_data", transforms=train_transforms)
+    val_ds = SkinLesionDataset(val_df, root_dir, val_transforms)
+    test_ds = SkinLesionDataset(test_df, root_dir, test_transforms)
 
     return train_ds, val_ds, test_ds
 
@@ -193,9 +243,11 @@ def plot_confusion_matrices(model, device, loaders, image_name):
 def main():
 
     train_df, val_df, test_df = load_and_split_metadata("data/train-metadata.csv")
-    synth_df = load_synthetic_df("data/train-image/synthetic", label=1)
+    # synth_df = load_synthetic_df("data/train-image/synthetic", label=1)
+    synth_df = load_external_df("data/malign_external_data", label=1)
+    print(synth_df)
     train_df = pd.concat([train_df, synth_df], ignore_index=True)
-    print(f"Synth Training Set: {len(train_df)} images ({train_df['target'].sum()} Malignant)")
+    print(f"Real Training Set: {len(train_df)} images ({train_df['target'].sum()} Malignant)")
 
     train_ds, val_ds, test_ds = create_datasets(
         train_df, val_df, test_df, Path("data/train-image/image")
@@ -204,7 +256,11 @@ def main():
     train_loader, val_loader, test_loader = create_loaders(train_ds, val_ds, test_ds)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = UpgradedCNN().to(device)
+    model = EfficientNetB3().to(device)
+    ##POS_Weight
+    # pos_weight = torch.tensor([2.0], device=device)
+    # criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    ##
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
@@ -212,8 +268,8 @@ def main():
 
     best_val_f1 = -1.0
     best_val_recall = -1.0
-    best_model_path = "best_model_synth1.pt"
-
+    best_model_path = "models/trained/EfficientNetB3_1_to_1.pt"
+   
     for epoch in range(20):
         tr_loss, tr_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
         val_loss, val_acc, val_prec, val_rec, val_f1 = validate(model, val_loader, criterion, device)
@@ -233,7 +289,7 @@ def main():
 
     model.load_state_dict(torch.load(best_model_path, map_location=device))
 
-    plot_training_curves(history, "synth3_plot.jpg")
+    plot_training_curves(history, "external9_plot.jpg")
 
     val_loss, val_acc, val_prec, val_rec, val_f1 = validate(model, val_loader, criterion, device)
     print(
@@ -248,7 +304,8 @@ def main():
     )
 
     loaders = {"Train": train_loader, "Validation": val_loader, "Test": test_loader}
-    plot_confusion_matrices(model, device, loaders, "synth3_mc.jpg")
+    plot_confusion_matrices(model, device, loaders, "external9_mc.jpg")
 
 if __name__ == "__main__":
     main()
+

@@ -1,5 +1,5 @@
 
-
+validation, test = 50 malignant/1000 benign
 # Testing different malignant / benign ratios
 > Done without any augmentations, syntetic data, oversampling, putting more attention to some classes. Raw data without modifications, only normalized.
 

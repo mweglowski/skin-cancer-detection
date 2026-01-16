@@ -3,6 +3,14 @@ Data
 * Val Set: 1050 images (50 Malignant)
 * Test Set: 1050 images (50 Malignant)
 
+Patients can have multiple lesions.
+IP_1117889    9184
+IP_5714646    6267
+IP_3921915    5568
+IP_7797815    4454
+IP_9577633    3583
+              ... 
+
 # Testing models
 > Done without any augmentations, syntetic data, oversampling, putting more attention to some classes. Raw data without modifications, only normalized.
 

@@ -11,7 +11,6 @@ if __name__ == "__main__":
         transforms.ToTensor()
     ])
 
-    # Load dataset
     dataset = datasets.ImageFolder("../data/train-image", transform=transform)
     loader = torch.utils.data.DataLoader(
         dataset,

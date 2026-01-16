@@ -47,22 +47,46 @@ class SkinLesionDatasetWithSynthetic(SkinLesionDataset):
         base = str(row.iloc[0])  # filename stem
 
         real_path = self.real_root / f"{base}.jpg"
-
         if real_path.exists():
             img_path = real_path
         else:
-            img_path = self.synth_root / f"{base}"
-
+            img_path = self.synth_root / f"{base}.jpg"
         image = Image.open(img_path).convert("RGB")
         image = np.array(image)
 
         label = int(row.iloc[1])
 
         if self.transforms:
-            image = self.transforms(image)
-
+            image = self.transforms(image=image)["image"]
         return image, label
 
+# class SkinLesionDatasetWithSynthetic(SkinLesionDataset):
+#     def __init__(self, dataframe, real_root, synth_root, transforms=None):
+#         super().__init__(dataframe, real_root, transforms)
+#         self.real_root = Path(real_root)
+#         self.synth_root = Path(synth_root)
+#
+#     def __getitem__(self, index):
+#         row = self.dataframe.iloc[index]
+#
+#         base = str(row.iloc[0])  # filename stem
+#
+#         real_path = self.real_root / f"{base}.jpg"
+#
+#         if real_path.exists():
+#             img_path = real_path
+#         else:
+#             img_path = self.synth_root / f"{base}"
+#
+#         image = Image.open(img_path).convert("RGB")
+#         image = np.array(image)
+#
+#         label = int(row.iloc[1])
+#
+#         if self.transforms:
+#             image = self.transforms(image)
+#
+#         return image, label
 
 class SkinLesionHDF5Dataset(Dataset):
     def __init__(self, dataframe, hdf5_path, transforms=None):

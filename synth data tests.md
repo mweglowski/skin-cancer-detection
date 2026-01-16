@@ -1,3 +1,4 @@
+validation, test = 50 malignant/1000 benign
 
 
 # Testing models with synthetic data

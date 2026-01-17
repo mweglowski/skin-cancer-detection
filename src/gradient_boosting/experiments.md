@@ -876,3 +876,111 @@ Pipeline(steps=[('sampler',
 ---
 
 
+# **==== AFTER TRAIN TEST SPLIT ====**
+# Experiment: 11
+> Switched to VotingClassifier with 5 lgbs, divided into train and test sets, train is used for cross-validation, test for final evaluation
+- **Date:** 2026-01-17 22:34:34
+- **Mean Partial AUC:** `0.1747 +/- 0.0073`
+- **Threshold:** `0.5`
+
+## Model Configuration
+```python
+VotingClassifier(estimators=[('lgb1',
+                              Pipeline(steps=[('sampler',
+                                               RandomUnderSampler(random_state=12,
+                                                                  sampling_strategy=0.01)),
+                                              ('classifier',
+                                               LGBMClassifier(bagging_fraction=0.7937347683420382,
+                                                              bagging_freq=4,
+                                                              colsample_bynode=0.5005423904042993,
+                                                              colsample_bytree=0.7573175155547233,
+                                                              lambda_l1=0.03335206514282942,
+                                                              lambda_l2=0.005157393323802471,
+                                                              learning_rate...
+                                                              bagging_freq=4,
+                                                              colsample_bynode=0.5005423904042993,
+                                                              colsample_bytree=0.7573175155547233,
+                                                              lambda_l1=0.03335206514282942,
+                                                              lambda_l2=0.005157393323802471,
+                                                              learning_rate=0.030665870185795318,
+                                                              max_depth=7,
+                                                              min_data_in_leaf=29,
+                                                              n_iter=200,
+                                                              n_jobs=2,
+                                                              num_leaves=239,
+                                                              objective='binary',
+                                                              random_state=52,
+                                                              scale_pos_weight=1.648349898918236,
+                                                              verbosity=-1))]))],
+                 voting='soft')
+```
+
+## Fold Results
+### Fold 1
+- **Fold Partial AUC:** `0.1820`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2157 | 0.2558 | 0.2340 |
+
+#### Confusion Matrix Fold 1
+![CM Fold 1](../../images/gbdt/11/cm_fold_1.jpg)
+
+---
+### Fold 2
+- **Fold Partial AUC:** `0.1810`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2373 | 0.2333 | 0.2353 |
+
+#### Confusion Matrix Fold 2
+![CM Fold 2](../../images/gbdt/11/cm_fold_2.jpg)
+
+---
+### Fold 3
+- **Fold Partial AUC:** `0.1618`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.1961 | 0.2000 | 0.1980 |
+
+#### Confusion Matrix Fold 3
+![CM Fold 3](../../images/gbdt/11/cm_fold_3.jpg)
+
+---
+### Fold 4
+- **Fold Partial AUC:** `0.1759`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2653 | 0.2281 | 0.2453 |
+
+#### Confusion Matrix Fold 4
+![CM Fold 4](../../images/gbdt/11/cm_fold_4.jpg)
+
+---
+### Fold 5
+- **Fold Partial AUC:** `0.1728`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.3148 | 0.2329 | 0.2677 |
+
+#### Confusion Matrix Fold 5
+![CM Fold 5](../../images/gbdt/11/cm_fold_5.jpg)
+
+---
+### Test set
+- **Test Partial AUC:** `0.1709`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2561 | 0.1909 | 0.2188 |
+
+#### Confusion Matrix Test
+![CM Fold Test](../../images/gbdt/11/cm_fold_test.jpg)
+
+---
+
+

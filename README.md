@@ -1,6 +1,6 @@
 # Skin Cancer Detection
 
-![Project Image](images/project_image.jpg)
+![](https://www.kaggle.com/competitions/63056/images/header)
 
 ## Overview
 This project is an idea from Kaggle competition **ISIC 2024 - Skin Cancer Detection with 3D-TBP**.

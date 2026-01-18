@@ -982,5 +982,220 @@ VotingClassifier(estimators=[('lgb1',
 ![CM Fold Test](../../images/gbdt/11/cm_fold_test.jpg)
 
 ---
+# Experiment: 12
+> Threshold to 0.5 and used our tuned params in optuna
+- **Date:** 2026-01-18 21:09:31
+- **Mean Partial AUC:** `0.1754 +/- 0.0061`
+- **Threshold:** `0.5`
+
+## Model Configuration
+```python
+VotingClassifier(estimators=[('lgb1',
+                              Pipeline(steps=[('sampler',
+                                               RandomUnderSampler(random_state=12,
+                                                                  sampling_strategy=0.01)),
+                                              ('classifier',
+                                               LGBMClassifier(bagging_fraction=0.6447666943905135,
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rat...
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rate=0.03706854419039463,
+                                                              max_depth=7,
+                                                              min_data_in_leaf=71,
+                                                              n_iter=200,
+                                                              n_jobs=2,
+                                                              num_leaves=244,
+                                                              objective='binary',
+                                                              random_state=52,
+                                                              scale_pos_weight=1.616949356992221,
+                                                              verbosity=-1))]))],
+                 voting='soft')
+```
+
+## Fold Results
+### Fold 1
+- **Fold Partial AUC:** `0.1819`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2292 | 0.2558 | 0.2418 |
+
+#### Confusion Matrix Fold 1
+![CM Fold 1](../../images/gbdt/12/cm_fold_1.jpg)
+
+---
+### Fold 2
+- **Fold Partial AUC:** `0.1751`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2121 | 0.2333 | 0.2222 |
+
+#### Confusion Matrix Fold 2
+![CM Fold 2](../../images/gbdt/12/cm_fold_2.jpg)
+
+---
+### Fold 3
+- **Fold Partial AUC:** `0.1642`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.1930 | 0.2200 | 0.2056 |
+
+#### Confusion Matrix Fold 3
+![CM Fold 3](../../images/gbdt/12/cm_fold_3.jpg)
+
+---
+### Fold 4
+- **Fold Partial AUC:** `0.1761`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2545 | 0.2456 | 0.2500 |
+
+#### Confusion Matrix Fold 4
+![CM Fold 4](../../images/gbdt/12/cm_fold_4.jpg)
+
+---
+### Fold 5
+- **Fold Partial AUC:** `0.1794`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2857 | 0.2192 | 0.2481 |
+
+#### Confusion Matrix Fold 5
+![CM Fold 5](../../images/gbdt/12/cm_fold_5.jpg)
+
+---
+### Test set
+- **Test Partial AUC:** `0.1732`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.2360 | 0.1909 | 0.2111 |
+
+#### Confusion Matrix Test
+![CM Fold Test](../../images/gbdt/12/cm_fold_test.jpg)
+
+---
+
+
+# Experiment: 13
+> Threshold to 0.1
+- **Date:** 2026-01-18 21:13:26
+- **Mean Partial AUC:** `0.1754 +/- 0.0061`
+- **Threshold:** `0.1`
+
+## Model Configuration
+```python
+VotingClassifier(estimators=[('lgb1',
+                              Pipeline(steps=[('sampler',
+                                               RandomUnderSampler(random_state=12,
+                                                                  sampling_strategy=0.01)),
+                                              ('classifier',
+                                               LGBMClassifier(bagging_fraction=0.6447666943905135,
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rat...
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rate=0.03706854419039463,
+                                                              max_depth=7,
+                                                              min_data_in_leaf=71,
+                                                              n_iter=200,
+                                                              n_jobs=2,
+                                                              num_leaves=244,
+                                                              objective='binary',
+                                                              random_state=52,
+                                                              scale_pos_weight=1.616949356992221,
+                                                              verbosity=-1))]))],
+                 voting='soft')
+```
+
+## Fold Results
+*Same as previous*
+
+---
+### Test set
+- **Test Partial AUC:** `0.1732`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.1003 | 0.5545 | 0.1699 |
+
+#### Confusion Matrix Test
+![CM Fold Test](../../images/gbdt/13/cm_fold_test.jpg)
+
+---
+
+
+# Experiment: 14
+> Threshold to 0.9
+- **Date:** 2026-01-18 21:15:54
+- **Mean Partial AUC:** `0.1754 +/- 0.0061`
+- **Threshold:** `0.9`
+
+## Model Configuration
+```python
+VotingClassifier(estimators=[('lgb1',
+                              Pipeline(steps=[('sampler',
+                                               RandomUnderSampler(random_state=12,
+                                                                  sampling_strategy=0.01)),
+                                              ('classifier',
+                                               LGBMClassifier(bagging_fraction=0.6447666943905135,
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rat...
+                                                              bagging_freq=6,
+                                                              colsample_bynode=0.4934008311812317,
+                                                              colsample_bytree=0.8964672653963122,
+                                                              lambda_l1=0.050475696387308554,
+                                                              lambda_l2=0.004604923273849557,
+                                                              learning_rate=0.03706854419039463,
+                                                              max_depth=7,
+                                                              min_data_in_leaf=71,
+                                                              n_iter=200,
+                                                              n_jobs=2,
+                                                              num_leaves=244,
+                                                              objective='binary',
+                                                              random_state=52,
+                                                              scale_pos_weight=1.616949356992221,
+                                                              verbosity=-1))]))],
+                 voting='soft')
+```
+
+## Fold Results
+*Same as previous*
+
+---
+### Test set
+- **Test Partial AUC:** `0.1732`
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.3333 | 0.0091 | 0.0177 |
+
+#### Confusion Matrix Test
+![CM Fold Test](../../images/gbdt/14/cm_fold_test.jpg)
+
+---
 
 

@@ -14,7 +14,7 @@ Evaluation metric is **pAUC (Partial Area Under the ROC Curve)** specifically ab
 Our project includes two approaches. First focuses on **neural networks**. TODO OSKAR
 
 Second one is about usage of **gradient boosting** techniques with tabular data provided by kaggle in `train-metadata.csv`.
-
+ 
 ## General Data Exploration
 
 * Dataset consists of:

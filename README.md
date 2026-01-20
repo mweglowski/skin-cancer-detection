@@ -61,8 +61,374 @@ Second one is about usage of **gradient boosting** techniques with tabular data 
     ![](images/eda/distribution_of_shapes.jpg)
 
 
-## OSKAR TUTAJ MOŻESZ UMIEŚCIĆ SWOJE PODEJŚCIE
 
+## Neural Network Approach
+
+### Data
+
+My final Dataset was a mix of samples from original dataset and additional one: isic17k
+
+Training dataset:\
+3025 Bening - all from original dataset\
+3025 Malignant - 293 from original dataset and 2732 from additional
+
+Test set:\
+20% of patients from the original dataset, the same set as for Gradient Boosting approach
+
+I made sure to not leak lessions or patients from training set to test set
+
+Images from original dataset were only resized to match model input\
+images from additional dataset were not square, my approach to prepare them correctly,\
+was to add black paddings on the smaller size of the picture, so for example 300x400 picture got two 50px black stripes on shorter side
+
+It took some experimentation to finally reach best dataset my other failed approaches were:
+
+- use only malign data from orignal dataset 393 images and add more benign in ratios 1:2, 1:3, 1:5
+- add pos_weight to upper approach
+- next i tried using synthetic data
+- next i used data entirely from the additional dataset
+- finally i used benign data from the original dataset, becouse it was better quality than from the additional one, added most of the malign data from the original\
+dataset and the rest from additional set to achieve 1:1 Benign vs Malignant ratio 
+
+### Augmentations
+
+EfficientNetB3
+```python
+A.Compose([
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+
+        A.ShiftScaleRotate(
+            shift_limit=0.05,
+            scale_limit=0.1,
+            rotate_limit=20,
+            border_mode=0,
+            p=0.7
+        ),
+
+        A.RandomBrightnessContrast(
+            brightness_limit=0.15,
+            contrast_limit=0.15,
+            p=0.5
+        ),
+
+        A.HueSaturationValue(
+            hue_shift_limit=5,
+            sat_shift_limit=10,
+            val_shift_limit=5,
+            p=0.3
+        ),
+
+        A.Resize(image_size, image_size),
+
+        A.Normalize(
+            mean=(0.485, 0.456, 0.406),
+            std=(0.229, 0.224, 0.225)
+        ),
+
+        ToTensorV2()
+    ])
+```
+Model4:
+```python
+
+transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((size, size)), 
+        transforms.RandomAffine(
+            degrees=20, 
+            translate=(0.2, 0.2), 
+            shear=20,  
+            scale=(0.8, 1.2),  
+            fill=0  
+        ),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])    ])
+```
+Test and validation normalizations:
+```python
+transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((size,size)),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+    ])
+
+```
+
+
+### Models that were tested:
+
+```python
+class Model1(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.relu = nn.ReLU(inplace=True)
+        self.pool = nn.MaxPool2d(2)
+
+        self.flatten = nn.Flatten()
+        self.fc = nn.Sequential(
+            nn.Linear(32 * 64 * 64, 256),
+            nn.ReLU(),
+            nn.Linear(256, 1)
+        )
+
+    def forward(self, x):
+        x = self.pool(self.relu(self.bn1(self.conv1(x))))
+        x = self.flatten(x)
+        return self.fc(x)
+```
+
+```python
+
+class Model2(nn.Module):
+    def __init__(self):
+        super(Model2, self).__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1),
+
+            nn.Conv2d(16, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1),
+
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1),
+
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1),
+            nn.AdaptiveAvgPool2d((3, 3))
+        )
+
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 3 * 3, 128),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+
+            nn.Linear(128, 64),
+            nn.ReLU(),
+
+            nn.Linear(64, 1),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+```
+```python
+class Model3(nn.Module):
+    def __init__(self, num_classes):
+        super(Model3, self).__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, padding=0),   
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2),           
+            nn.Dropout(0.25),
+
+            nn.Conv2d(32, 64, kernel_size=3, padding=0),    
+            nn.ReLU(),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2),        
+            nn.Dropout(0.25),
+
+            nn.Conv2d(64, 128, kernel_size=3, padding=0),  
+            nn.ReLU(),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(kernel_size=2, stride=2),           
+            nn.Dropout(0.25),
+
+            nn.Conv2d(128, 256, kernel_size=3, padding=0),
+            nn.ReLU(),
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(kernel_size=2, stride=2),      
+            nn.Dropout(0.25),
+
+            nn.AdaptiveAvgPool2d((1, 1))       
+        )
+
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(256, 512),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(128, num_classes)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+```
+```python
+
+class ResidualSE(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(channels),
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.BatchNorm2d(channels)
+        )
+        self.se = SEBlock(channels)
+
+    def forward(self, x):
+        out = self.conv(x)
+        out = self.se(out)
+        return F.relu(out + x)
+
+class SEBlock(nn.Module):
+    def __init__(self, channels, reduction=8):
+        super().__init__()
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channels, channels // reduction),
+            nn.ReLU(),
+            nn.Linear(channels // reduction, channels),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        w = self.pool(x).view(b, c)
+        w = self.fc(w).view(b, c, 1, 1)
+        return x * w
+
+class Model4(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.block1 = nn.Sequential(
+            nn.Conv2d(3, 16, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            ResidualSE(16),
+            nn.MaxPool2d(2, 2, padding=1)
+        )
+
+        self.block2 = nn.Sequential(
+            nn.Conv2d(16, 32, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            ResidualSE(32),
+            nn.MaxPool2d(2, 2, padding=1)
+        )
+
+        self.block3 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(64),
+            ResidualSE(64),
+            nn.MaxPool2d(2, 2, padding=1)
+        )
+
+        self.block4 = nn.Sequential(
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(128),
+            ResidualSE(128),
+            nn.MaxPool2d(2, 2, padding=1),
+            nn.AdaptiveAvgPool2d((3, 3))
+        )
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 3 * 3, 256),
+            nn.GELU(),
+            nn.BatchNorm1d(256),
+            nn.Dropout(0.4),
+
+            nn.Linear(256, 64),
+            nn.GELU(),
+            nn.BatchNorm1d(64),
+            nn.Dropout(0.2),
+
+            nn.Linear(64, 1)
+        )
+
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.classifier(x)
+        return x
+```
+
+```python
+class EfficientNetB3(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = efficientnet_b3(weights=EfficientNet_B3_Weights.IMAGENET1K_V1)
+        in_features = self.model.classifier[1].in_features
+        self.model.classifier[1] = nn.Linear(in_features, 1)
+
+    def forward(self, x):
+        return self.model(x)
+```
+
+All Models use:\
+criterion - BCEWithLogitsLoss\
+optimizer - Adam
+
+### Results 
+
+Only architectures that i consider successful were EfficientNetB3 and Model4\
+
+Failed architectures:
+
+- Model 3 - pAUC 0.0453 
+- Model 2 - pAUC 0.0835
+
+## Model 4
+
+![threshold_model4.jpg](images%2Fnn_readme%2Fthreshold_model4.jpg)
+
+Threshold: 0.650
+
+Test Partial AUC: 0.1022
+
+| Precision | Recall | F1-Score |
+| :--- | :--- | :--- |
+| 0.051 | 0.182 | 0.079 |
+
+![Model4_cm.jpg](images%2Fnn_readme%2FModel4_cm.jpg)
+
+## EfficientNetB3
+![thresholds_efficient.jpg](images%2Fnn_readme%2Fthresholds_efficient.jpg)
+
+
+Threshold: 0.825
+
+Test Partial AUC: 0.1557 
+
+
+| Precision | Recall | F1-Score |
+|:----------|:-------|:---------|
+| 0.120     | 0.182  | 0.145    |
+
+![Efficient_cm.jpg](images%2Fnn_readme%2FEfficient_cm.jpg)
 
 ## Gradient Boosting Approach
 
